@@ -6,5 +6,15 @@
     "url": "https://xr-messaging-geexbheshbghhab7.centralindia-01.azurewebsites.net",
     "cleartext": false,
     "appStartPath": "/platform"
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
   }
 }
