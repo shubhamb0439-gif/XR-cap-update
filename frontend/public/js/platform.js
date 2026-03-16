@@ -308,41 +308,10 @@ function showToast(message, type = 'success') {
 }
 
 async function checkSession() {
-  try {
-    const response = await fetch('/api/platform/me', {
-      method: 'GET',
-      credentials: 'include',
-    });
-    const data = await response.json();
-
-    if (data.ok) {
-      // set currentUser for ALL roles
-      currentUser = data;
-
-      // ✅ Auto-redirect Providers to /device page
-      if (data.persona && data.persona.toLowerCase() === 'provider') {
-        window.location.href = '/device';
-        return;
-      }
-
-      await showDashboard(data.email);
-
-
-      // Only SuperAdmin should load create-user lookup options
-      // Only SuperAdmin should load create-user lookup options
-      if (isCurrentUserSuperAdmin() && typeof refreshCreateUserFormOptionsGlobal === 'function') {
-        refreshCreateUserFormOptionsGlobal();
-      }
-
-
-
-    } else {
-      showLoginForm();
-    }
-  } catch (err) {
-    console.error('Session check failed:', err);
-    showLoginForm();
-  }
+  // ✅ ALWAYS show login page when visiting /platform
+  // This prevents providers from seeing the dashboard
+  // Users must login to access /device or dashboard
+  showLoginForm();
 }
 
 
