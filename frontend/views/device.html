@@ -66,6 +66,15 @@
             <span class="btxt off" id="btxt">DISCONNECTED</span>
         </div>
 
+        <!-- Logout button -->
+        <button class="logout-btn" id="logoutBtn">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M6 14H3C2.44772 14 2 13.5523 2 13V3C2 2.44772 2.44772 2 3 2H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M11 11L14 8M14 8L11 5M14 8H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Logout</span>
+        </button>
+
         <!-- ORB -->
         <div class="orb-root" id="orbVisual">
             <div class="halo"></div>
@@ -175,20 +184,40 @@
         });
     </script>
 
-    <!-- ✅ AUTO-LOGOUT: Clear session when /device tab is closed -->
+    <!-- ✅ MANUAL LOGOUT: Logout button handler -->
     <script>
-        // Detect when user is closing the /device tab
-        window.addEventListener('beforeunload', function(event) {
-            // Send synchronous logout request (works even when tab closes)
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/api/platform/logout', false); // false = synchronous
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.send();
+        // Manual logout button click handler
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async function() {
+                try {
+                    console.log('[DEVICE] Manual logout initiated');
 
-            console.log('[DEVICE] Auto-logout: session cleared on tab close');
-        });
+                    // Call logout API
+                    const response = await fetch('/api/platform/logout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include'
+                    });
 
-        console.log('[DEVICE] Auto-logout listener active');
+                    const data = await response.json();
+
+                    if (data.ok) {
+                        console.log('[DEVICE] Logout successful, redirecting to login page');
+                        // Redirect to platform login page
+                        window.location.href = '/platform';
+                    } else {
+                        console.error('[DEVICE] Logout failed:', data.message);
+                        // Still redirect to login page
+                        window.location.href = '/platform';
+                    }
+                } catch (err) {
+                    console.error('[DEVICE] Logout error:', err);
+                    // Still redirect to login page
+                    window.location.href = '/platform';
+                }
+            });
+        }
     </script>
 </body>
 
