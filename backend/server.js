@@ -321,8 +321,9 @@ app.use(
       sameSite: IS_PROD ? 'none' : 'lax',
       secure: IS_PROD,
 
-      // ✅ Session expires when browser tab closes (no maxAge = session cookie)
-      // maxAge: 24 * 60 * 60 * 1000,  // commented out to enable auto-logout on tab close
+      // ✅ Session expires when browser tab closes (session cookie - no maxAge/expires)
+      maxAge: null,  // explicit null = session cookie (deleted when browser closes)
+      expires: false, // no expiration date = session cookie
     },
   })
 );
@@ -2801,6 +2802,12 @@ app.post('/api/platform/logout', (req, res) => {
         console.error('[PLATFORM] Logout error:', err);
         return res.status(500).json({ ok: false, message: 'Logout failed' });
       }
+      // ✅ Clear the session cookie explicitly
+      res.clearCookie('connect.sid', {
+        httpOnly: true,
+        sameSite: IS_PROD ? 'none' : 'lax',
+        secure: IS_PROD,
+      });
       return res.json({ ok: true });
     });
   } else {
