@@ -1107,14 +1107,14 @@ function ensureStreamer() {
 
 
 // ----------------- Controls -----------------
-// Connect / Disconnect
-elBtnConnect.addEventListener('click', async () => {
+// Shared function for connect/disconnect logic (used by both button and badge)
+async function handleConnectDisconnect() {
     // 🔒 READ-only guard for XR Device
     if (!hasDeviceWritePermission()) {
         notifyReadOnlyDevice();
         return;
     }
-    // Prefer the client’s own state if available; fall back to our flag
+    // Prefer the client's own state if available; fall back to our flag
     const connected = (typeof signaling?.isConnectedNow === 'function')
         ? signaling.isConnectedNow()
         : !!isServerConnected;
@@ -1238,7 +1238,10 @@ elBtnConnect.addEventListener('click', async () => {
     createSignaling();
     ensureStreamer();
     // bind preview element
-});
+}
+
+// Connect / Disconnect button
+elBtnConnect.addEventListener('click', handleConnectDisconnect);
 
 
 
@@ -1787,6 +1790,14 @@ const elBtnAudio = document.getElementById('btnAudio');
 if (elBtnAudio) {
     elBtnAudio.addEventListener('click', () => {
         toggleAudioPlayback();
+    });
+}
+
+// Badge click handler for manual connect/disconnect toggle
+const elBadge = document.getElementById('badge');
+if (elBadge) {
+    elBadge.addEventListener('click', () => {
+        handleConnectDisconnect();
     });
 }
 
