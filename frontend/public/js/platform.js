@@ -318,6 +318,13 @@ async function checkSession() {
     if (data.ok) {
       // set currentUser for ALL roles
       currentUser = data;
+
+      // ✅ Auto-redirect Providers to /device page
+      if (data.persona && data.persona.toLowerCase() === 'provider') {
+        window.location.href = '/device';
+        return;
+      }
+
       await showDashboard(data.email);
 
 
