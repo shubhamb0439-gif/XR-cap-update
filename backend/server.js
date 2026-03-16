@@ -321,7 +321,8 @@ app.use(
       sameSite: IS_PROD ? 'none' : 'lax',
       secure: IS_PROD,
 
-      maxAge: 24 * 60 * 60 * 1000,
+      // ✅ Session expires when browser tab closes (no maxAge = session cookie)
+      // maxAge: 24 * 60 * 60 * 1000,  // commented out to enable auto-logout on tab close
     },
   })
 );
