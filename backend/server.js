@@ -6581,30 +6581,7 @@ io.on('connection', (socket) => {
   // ✅ IMPORTANT: disconnecting runs before Socket.IO removes the socket from rooms.
   // We use it ONLY to notify the peer. Never emit device_list here.
   socket.on('disconnecting', (reason) => {
-    // ✅ Handle dashboard/cockpit disconnect separately
-    if (socket.data?.clientType === 'cockpit' || socket.data?.clientType === 'dashboard') {
-      try {
-        const clientType = socket.data?.clientType;
-        const rooms = Array.from(socket.rooms).filter(r => r.startsWith('pair:'));
-
-        dlog(`⚠️ [EVENT] disconnecting [${clientType}]`, { reason, rooms });
-
-        // Notify all pair rooms that this dashboard/cockpit is leaving
-        for (const roomId of rooms) {
-          io.to(roomId).emit('peer_left', {
-            xrId: socket.data?.xrId || socket.data?.cockpitForXrId,
-            roomId,
-            reason,
-            clientType
-          });
-        }
-      } catch (e) {
-        derr('[disconnecting][dashboard/cockpit] error:', e?.message || e);
-      }
-      return;
-    }
-
-    // ✅ Original provider (XR Device) disconnect logic
+    if (socket.data?.clientType === 'cockpit' || socket.data?.clientType === 'dashboard') return;
     try {
       const xrId = normXr(socket.data?.xrId);
 
@@ -6632,35 +6609,7 @@ io.on('connection', (socket) => {
 
   //------------changes made regarding dashabord ***----------------------------------------------------------------
   socket.on('disconnect', async (reason) => {
-    // ✅ Handle dashboard/cockpit disconnect separately
-    if (socket.data?.clientType === 'cockpit' || socket.data?.clientType === 'dashboard') {
-      try {
-        const clientType = socket.data?.clientType;
-        const socketId = socket.id;
-
-        dlog(`❎ [EVENT] disconnect [${clientType}]`, { reason, socketId });
-
-        // ✅ Broadcast updated device_list to all rooms this dashboard/cockpit was in
-        // This ensures Scribe Cockpit and other viewers get real-time updates
-        const rooms = Array.from(socket.rooms).filter(r => r.startsWith('pair:'));
-
-        for (const roomId of rooms) {
-          setTimeout(() => {
-            broadcastDeviceList(roomId).catch(() => { });
-          }, 0);
-        }
-
-        dlog(`[${clientType}] broadcast device_list to rooms after disconnect`, {
-          socketId,
-          rooms
-        });
-      } catch (e) {
-        derr('[disconnect][dashboard/cockpit] error:', e?.message || e);
-      }
-      return;
-    }
-
-    // ✅ Original provider (XR Device) disconnect logic
+    if (socket.data?.clientType === 'cockpit' || socket.data?.clientType === 'dashboard') return;
     dlog('❎ [EVENT] disconnect', {
       reason,
       xrId: socket.data?.xrId,
