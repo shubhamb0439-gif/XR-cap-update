@@ -114,6 +114,54 @@
             <div class="mic-lbl" id="micInstruction">Hold to <b>Speak</b></div>
         </div>
 
+        <!-- Manual Controls Panel -->
+        <div class="control-panel" id="controlPanel">
+            <!-- XR ID Display -->
+            <div class="xr-id-section">
+                <input type="text" id="xrIdDisplay" class="xr-id-display" readonly placeholder="XR-ID" />
+            </div>
+
+            <!-- Manual Control Buttons -->
+            <div class="manual-controls">
+                <button class="control-btn" id="manualStreamBtn" data-action="stream">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
+                        <circle cx="8" cy="8" r="3" fill="currentColor"/>
+                    </svg>
+                    <span>Start Stream</span>
+                </button>
+
+                <button class="control-btn" id="manualMuteBtn" data-action="mute">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 2v12M5 5l6 6M11 5l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span>Mute</span>
+                </button>
+
+                <button class="control-btn" id="manualVideoBtn" data-action="video">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <rect x="2" y="4" width="9" height="8" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M11 6l3-2v8l-3-2" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Hide Video</span>
+                </button>
+            </div>
+
+            <!-- Messages Section -->
+            <div class="messages-section">
+                <div class="messages-header">Messages</div>
+                <div class="messages-list" id="visibleMsgList"></div>
+                <div class="message-input-section">
+                    <input type="text" id="visibleMsgInput" class="msg-input" placeholder="Type a message..." />
+                    <label class="urgent-checkbox">
+                        <input type="checkbox" id="visibleChkUrgent" />
+                        <span>Urgent</span>
+                    </label>
+                    <button class="send-btn" id="visibleBtnSend">Send</button>
+                </div>
+            </div>
+        </div>
+
         <div class="toast" id="toast"></div>
 
         <!-- Hidden functional elements for ui.js -->

@@ -1954,3 +1954,159 @@ if (typeof window !== 'undefined') {
             console.warn('[XRDEVICE] Permission bootstrap failed:', err);
         });
 }
+
+
+// ========== MANUAL CONTROL PANEL FUNCTIONALITY ==========
+// This section adds manual button controls while keeping voice commands working
+
+const manualStreamBtn = document.getElementById('manualStreamBtn');
+const manualMuteBtn = document.getElementById('manualMuteBtn');
+const manualVideoBtn = document.getElementById('manualVideoBtn');
+const xrIdDisplay = document.getElementById('xrIdDisplay');
+const visibleMsgList = document.getElementById('visibleMsgList');
+const visibleMsgInput = document.getElementById('visibleMsgInput');
+const visibleChkUrgent = document.getElementById('visibleChkUrgent');
+const visibleBtnSend = document.getElementById('visibleBtnSend');
+
+// Update XR ID display when it changes
+function updateXrIdDisplay() {
+    if (xrIdDisplay && ANDROID_XR_ID) {
+        xrIdDisplay.value = ANDROID_XR_ID;
+    }
+}
+
+// Sync XR ID display on load and when it changes
+if (typeof window !== 'undefined') {
+    setTimeout(() => {
+        updateXrIdDisplay();
+
+        const observer = new MutationObserver(() => {
+            updateXrIdDisplay();
+        });
+
+        if (elDeviceXrIdInput) {
+            observer.observe(elDeviceXrIdInput, {
+                attributes: true,
+                attributeFilter: ['value']
+            });
+        }
+    }, 500);
+}
+
+// Manual Stream Button
+if (manualStreamBtn) {
+    manualStreamBtn.addEventListener('click', () => {
+        if (!hasDeviceWritePermission()) {
+            notifyReadOnlyDevice();
+            return;
+        }
+
+        elBtnStream.click();
+    });
+}
+
+// Manual Mute Button
+if (manualMuteBtn) {
+    manualMuteBtn.addEventListener('click', () => {
+        if (!hasDeviceWritePermission()) {
+            notifyReadOnlyDevice();
+            return;
+        }
+
+        elBtnMute.click();
+    });
+}
+
+// Manual Video Button
+if (manualVideoBtn) {
+    manualVideoBtn.addEventListener('click', () => {
+        if (!hasDeviceWritePermission()) {
+            notifyReadOnlyDevice();
+            return;
+        }
+
+        elBtnVideo.click();
+    });
+}
+
+// Sync button states with actual state
+function syncManualButtonStates() {
+    if (manualStreamBtn) {
+        if (isStreaming) {
+            manualStreamBtn.classList.add('active');
+            manualStreamBtn.querySelector('span').textContent = 'Stop Stream';
+        } else {
+            manualStreamBtn.classList.remove('active');
+            manualStreamBtn.querySelector('span').textContent = 'Start Stream';
+        }
+    }
+
+    if (manualMuteBtn) {
+        if (isMuted) {
+            manualMuteBtn.classList.add('active');
+            manualMuteBtn.querySelector('span').textContent = 'Unmute';
+        } else {
+            manualMuteBtn.classList.remove('active');
+            manualMuteBtn.querySelector('span').textContent = 'Mute';
+        }
+    }
+
+    if (manualVideoBtn) {
+        if (!isVideoVisible) {
+            manualVideoBtn.classList.add('active');
+            manualVideoBtn.querySelector('span').textContent = 'Show Video';
+        } else {
+            manualVideoBtn.classList.remove('active');
+            manualVideoBtn.querySelector('span').textContent = 'Hide Video';
+        }
+    }
+}
+
+// Update manual button states periodically
+if (typeof window !== 'undefined') {
+    setInterval(syncManualButtonStates, 500);
+}
+
+// Messages - Sync visible messages with hidden message list
+if (elMsgList && visibleMsgList) {
+    const msgObserver = new MutationObserver(() => {
+        visibleMsgList.innerHTML = elMsgList.innerHTML;
+    });
+
+    msgObserver.observe(elMsgList, {
+        childList: true,
+        subtree: true,
+        characterData: true
+    });
+}
+
+// Visible Send Button - triggers the hidden send button
+if (visibleBtnSend) {
+    visibleBtnSend.addEventListener('click', () => {
+        if (!hasDeviceWritePermission()) {
+            notifyReadOnlyDevice();
+            return;
+        }
+
+        const text = (visibleMsgInput.value || '').trim();
+        if (!text) return;
+
+        elMsgInput.value = visibleMsgInput.value;
+        elChkUrgent.checked = visibleChkUrgent.checked;
+
+        elBtnSend.click();
+
+        visibleMsgInput.value = '';
+        visibleChkUrgent.checked = false;
+    });
+}
+
+// Allow Enter key to send message
+if (visibleMsgInput) {
+    visibleMsgInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            visibleBtnSend.click();
+        }
+    });
+}
