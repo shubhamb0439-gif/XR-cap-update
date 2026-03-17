@@ -2032,7 +2032,7 @@ if (manualVideoBtn) {
 // Sync button states with actual state
 function syncManualButtonStates() {
     if (manualStreamBtn) {
-        if (isStreaming) {
+        if (streamActive) {
             manualStreamBtn.classList.add('active');
             manualStreamBtn.querySelector('span').textContent = 'Stop Stream';
         } else {
@@ -2042,7 +2042,7 @@ function syncManualButtonStates() {
     }
 
     if (manualMuteBtn) {
-        if (isMuted) {
+        if (micMuted) {
             manualMuteBtn.classList.add('active');
             manualMuteBtn.querySelector('span').textContent = 'Unmute';
         } else {
@@ -2052,7 +2052,7 @@ function syncManualButtonStates() {
     }
 
     if (manualVideoBtn) {
-        if (!isVideoVisible) {
+        if (!videoVisible) {
             manualVideoBtn.classList.add('active');
             manualVideoBtn.querySelector('span').textContent = 'Show Video';
         } else {
