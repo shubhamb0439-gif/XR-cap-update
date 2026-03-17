@@ -6681,6 +6681,12 @@ io.on('connection', (socket) => {
           dlog('[disconnect] removed desktop client:', xrId);
         }
 
+        // ✅ FIX: Notify cockpit in the room that peer has left (for Dock disconnect → Cockpit sync)
+        if (roomIdAtDisconnect) {
+          io.to(roomIdAtDisconnect).emit('peer_left', { xrId, roomId: roomIdAtDisconnect, reason: 'disconnect' });
+          dlog('[disconnect] emitted peer_left to room', { xrId, roomId: roomIdAtDisconnect });
+        }
+
         // ✅ Broadcast device list ONLY to the pair room (after Socket.IO prunes rooms)
         if (roomIdAtDisconnect) {
           setTimeout(() => {
