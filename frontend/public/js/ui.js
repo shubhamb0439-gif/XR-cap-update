@@ -694,6 +694,9 @@ function preferDesktop(listPairsOrPayload) {
 
     persistedState.connectedDesktops = connectedDesktops.slice();
     saveState();
+
+    // ✅ FIX: Update peer status when connected desktops change
+    updatePeerStatus();
 }
 
 
@@ -734,6 +737,9 @@ function createSignaling() {
                                     rememberXrName(id, nm);
                                 }
                             }
+
+                            // ✅ FIX: Update XR ID display after receiving full names
+                            updateXrIdDisplay();
                         } catch { }
                     });
                 }
@@ -1033,6 +1039,10 @@ function createSignaling() {
                 if (id === expected) {
                     msg('System', `${displayNameFor(expected, null)} left the room.`);
                     connectedDesktops = connectedDesktops.filter(x => x.toUpperCase() !== expected);
+
+                    // ✅ FIX: Update peer status when peer leaves
+                    updatePeerStatus();
+
                     if (streamActive) {
                         streamActive = false;
                         streamer?.stopStreaming().catch(() => { });
@@ -1047,6 +1057,10 @@ function createSignaling() {
                 const id = (payload?.xrId || DEFAULT_DESKTOP_ID).toUpperCase();
                 msg('System', `${displayNameFor(id, null)} disconnected.`);
                 connectedDesktops = connectedDesktops.filter(x => x.toUpperCase() !== id);
+
+                // ✅ FIX: Update peer status when desktop disconnects
+                updatePeerStatus();
+
                 if (streamActive) {
                     streamActive = false;
                     streamer?.stopStreaming().catch(() => { });
@@ -1152,6 +1166,12 @@ async function handleConnectDisconnect() {
         window.XR_DEVICE_ID = '';
         pairedDesktopId = null;
 
+        // ✅ FIX: Clear XR ID display and peer status on disconnect
+        updateXrIdDisplay();
+        if (peerStatusDisplay) {
+            peerStatusDisplay.style.display = 'none';
+        }
+
         // Clear the input back to blank
         // if (elDeviceXrIdInput) elDeviceXrIdInput.value = '';
 
@@ -1189,6 +1209,9 @@ async function handleConnectDisconnect() {
         ANDROID_XR_ID = normalized;          // will be XR-1234
         window.XR_DEVICE_ID = ANDROID_XR_ID;
         try { sessionStorage.setItem(LAST_XR_UI_KEY, ANDROID_XR_ID); } catch { }
+
+        // ✅ FIX: Update XR ID display immediately after setting
+        updateXrIdDisplay();
 
         // Load per-XR persisted state ONLY after explicit Connect
         // Reset in-memory state first
@@ -1944,8 +1967,16 @@ if (typeof window !== 'undefined') {
 
                 if (!(elDeviceXrIdInput?.value || '').trim()) return;
 
+                // ✅ FIX: Small delay to ensure DOM is fully ready
+                await new Promise(resolve => setTimeout(resolve, 300));
+
                 console.log('[AUTO-XR][DEVICE] Auto-clicking Connect (reuses existing logic).');
-                elBtnConnect.click();
+                if (elBtnConnect && !elBtnConnect.disabled) {
+                    elBtnConnect.click();
+                    console.log('[AUTO-XR][DEVICE] Connect button clicked successfully.');
+                } else {
+                    console.warn('[AUTO-XR][DEVICE] Connect button not available or disabled.');
+                }
             } catch (e) {
                 console.warn('[AUTO-XR][DEVICE] Auto-connect skipped:', e);
             }
@@ -1968,10 +1999,54 @@ const visibleMsgInput = document.getElementById('visibleMsgInput');
 const visibleChkUrgent = document.getElementById('visibleChkUrgent');
 const visibleBtnSend = document.getElementById('visibleBtnSend');
 
-// Update XR ID display when it changes
+// ✅ FIX: Peer status elements
+const peerStatusDisplay = document.getElementById('peerStatusDisplay');
+const peerStatusText = document.getElementById('peerStatusText');
+
+// ✅ FIX: Update XR ID display to show FULL NAME instead of XR ID
 function updateXrIdDisplay() {
-    if (xrIdDisplay && ANDROID_XR_ID) {
-        xrIdDisplay.value = ANDROID_XR_ID;
+    if (!xrIdDisplay) return;
+
+    if (ANDROID_XR_ID) {
+        // ✅ Priority 1: Show full name if available
+        const fullName = fullNameForXrId(ANDROID_XR_ID);
+        if (fullName && fullName !== ANDROID_XR_ID) {
+            xrIdDisplay.value = fullName;
+            console.log('[UI] XR ID Display updated to Full Name:', fullName);
+        } else {
+            // ✅ Fallback: Show XR ID if full name not yet available
+            xrIdDisplay.value = ANDROID_XR_ID;
+            console.log('[UI] XR ID Display updated to XR ID:', ANDROID_XR_ID);
+        }
+    } else {
+        xrIdDisplay.value = '';
+    }
+}
+
+// ✅ FIX: Update peer online/offline status
+function updatePeerStatus() {
+    if (!peerStatusDisplay || !peerStatusText) return;
+
+    const hasPeers = connectedDesktops.length > 0;
+
+    if (hasPeers) {
+        // Get the paired desktop or first available
+        const peerXrId = pairedDesktopId || connectedDesktops[0] || '';
+        const peerName = fullNameForXrId(peerXrId) || peerXrId;
+
+        peerStatusText.textContent = `${peerName} is Online`;
+        peerStatusDisplay.className = 'peer-status-display online';
+        peerStatusDisplay.style.display = 'block';
+        console.log('[UI] Peer status: Online -', peerName);
+    } else {
+        // No peers connected
+        const lastPeer = pairedDesktopId || 'Peer';
+        const peerName = fullNameForXrId(lastPeer) || lastPeer;
+
+        peerStatusText.textContent = `${peerName} is Offline`;
+        peerStatusDisplay.className = 'peer-status-display offline';
+        peerStatusDisplay.style.display = 'block';
+        console.log('[UI] Peer status: Offline -', peerName);
     }
 }
 

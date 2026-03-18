@@ -336,6 +336,31 @@ html,body{
   cursor:default;
 }
 
+/* ✅ FIX: Peer Status Display */
+.peer-status-display{
+  margin-top:8px;
+  padding:8px 12px;
+  border-radius:6px;
+  font-family:'Orbitron',sans-serif;
+  font-size:13px;
+  font-weight:500;
+  text-align:center;
+  letter-spacing:1px;
+  transition:all 0.3s ease;
+}
+
+.peer-status-display.online{
+  background:rgba(16,185,129,0.15);
+  border:1px solid rgba(16,185,129,0.4);
+  color:#10b981;
+}
+
+.peer-status-display.offline{
+  background:rgba(239,68,68,0.15);
+  border:1px solid rgba(239,68,68,0.4);
+  color:#ef4444;
+}
+
 .manual-controls{
   display:flex;
   gap:8px;
