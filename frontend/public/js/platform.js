@@ -316,6 +316,15 @@ async function checkSession() {
 
 
 function showLoginForm() {
+  // ✅ FIX: Clear sessionStorage when showing login form for clean slate
+  try {
+    sessionStorage.removeItem('XR_DEVICE_LAST_XR_ID_UI');
+    sessionStorage.removeItem('xr-device-id');
+    console.log('[PLATFORM] SessionStorage cleared on showLoginForm');
+  } catch (e) {
+    console.warn('[PLATFORM] Failed to clear sessionStorage:', e);
+  }
+
   loginFormContainer.classList.remove('hidden');
   dashboardContent.classList.add('hidden');
 }
@@ -2151,10 +2160,29 @@ if (logoutBtn) {
         method: 'POST',
         credentials: 'include',
       });
+
+      // ✅ FIX: Clear sessionStorage to prevent stale XR ID on next login
+      try {
+        sessionStorage.removeItem('XR_DEVICE_LAST_XR_ID_UI');
+        sessionStorage.removeItem('xr-device-id');
+        console.log('[PLATFORM] SessionStorage cleared on logout');
+      } catch (e) {
+        console.warn('[PLATFORM] Failed to clear sessionStorage:', e);
+      }
+
       currentUser = null;
       showLoginForm();
     } catch (err) {
       console.error('Logout error:', err);
+
+      // ✅ FIX: Clear sessionStorage even if logout API fails
+      try {
+        sessionStorage.removeItem('XR_DEVICE_LAST_XR_ID_UI');
+        sessionStorage.removeItem('xr-device-id');
+      } catch (e) {
+        console.warn('[PLATFORM] Failed to clear sessionStorage:', e);
+      }
+
       showLoginForm();
     }
   });

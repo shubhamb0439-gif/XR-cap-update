@@ -241,6 +241,15 @@
                 try {
                     console.log('[DEVICE] Manual logout initiated');
 
+                    // ✅ FIX: Clear sessionStorage BEFORE logout to prevent stale XR ID
+                    try {
+                        sessionStorage.removeItem('XR_DEVICE_LAST_XR_ID_UI');
+                        sessionStorage.removeItem('xr-device-id');
+                        console.log('[DEVICE] SessionStorage cleared on logout');
+                    } catch (e) {
+                        console.warn('[DEVICE] Failed to clear sessionStorage:', e);
+                    }
+
                     // Call logout API
                     const response = await fetch('/api/platform/logout', {
                         method: 'POST',
@@ -261,6 +270,15 @@
                     }
                 } catch (err) {
                     console.error('[DEVICE] Logout error:', err);
+
+                    // ✅ FIX: Clear sessionStorage even if logout API fails
+                    try {
+                        sessionStorage.removeItem('XR_DEVICE_LAST_XR_ID_UI');
+                        sessionStorage.removeItem('xr-device-id');
+                    } catch (e) {
+                        console.warn('[DEVICE] Failed to clear sessionStorage:', e);
+                    }
+
                     // Still redirect to login page
                     window.location.href = '/platform';
                 }
