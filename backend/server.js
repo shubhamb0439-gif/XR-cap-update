@@ -659,6 +659,26 @@ function broadcastPairs() {
   dlog('[PAIR] broadcastPairs:', pairs);
 }
 
+// ✅ FIX: Broadcast updated device list to a specific room
+async function broadcastDeviceListToRoom(roomId) {
+  if (!roomId) return;
+
+  try {
+    const devicesInRoom = await buildDeviceListForRoom(roomId);
+
+    // Emit updated device_list to all devices in this room
+    io.to(roomId).emit('device_list', {
+      roomId,
+      devices: devicesInRoom,
+      timestamp: Date.now()
+    });
+
+    console.log(`[ROOM][${roomId}] Broadcasted device_list:`, devicesInRoom.map(d => d.xrId));
+  } catch (err) {
+    console.error(`[ROOM][${roomId}] Failed to broadcast device_list:`, err);
+  }
+}
+
 // ---- DB resolvers using Sequelize (you already use sequelize.query elsewhere) ----
 // NOTE: This assumes `sequelize` and `Sequelize` are in scope in server.js (they are in your existing routes).
 
@@ -6687,11 +6707,14 @@ io.on('connection', (socket) => {
           dlog('[disconnect] emitted peer_left to room', { xrId, roomId: roomIdAtDisconnect });
         }
 
-        // ✅ Broadcast device list ONLY to the pair room (after Socket.IO prunes rooms)
+        // ✅ FIX: If device was in a room, broadcast updated device_list to that room
         if (roomIdAtDisconnect) {
-          setTimeout(() => {
-            broadcastDeviceList(roomIdAtDisconnect).catch(() => { });
-          }, 0);
+          console.log(`[DISCONNECT][${xrId}] Notifying room ${roomIdAtDisconnect} of disconnect`);
+
+          // Small delay to ensure Redis state is updated
+          setTimeout(async () => {
+            await broadcastDeviceListToRoom(roomIdAtDisconnect);
+          }, 100);
         }
 
         // ✅ After Socket.IO prunes rooms, reflect pair changes
